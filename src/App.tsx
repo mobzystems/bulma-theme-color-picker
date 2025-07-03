@@ -1,5 +1,4 @@
 import { useEffect, useState, type CSSProperties } from 'react'
-
 type BulmaType = 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'light' | 'dark' | 'black' | 'white'; //  | 'text' | 'ghost';
 
 function convertRgbToHsl(color: string): { h: string, s: string, l: string } {
@@ -57,6 +56,7 @@ const defaultStyleMap = new Map<BulmaType, string>([
 export default function App() {
   const [mainTheme, setMainTheme] = useState<'light' | 'dark'>('dark');
   const [styleMap, setStyleMap] = useState<Map<BulmaType, string>>(defaultStyleMap);
+  const [customOnly, setCustomOnly] = useState(true);
 
   function updateColor(type: BulmaType, color: string) {
     let newMap = new Map(styleMap);
@@ -67,18 +67,26 @@ export default function App() {
   useEffect(() => document.documentElement.setAttribute('data-theme', mainTheme), [mainTheme]);
 
   function createStyleSheet() {
+    function exportColor(type: BulmaType, color: string) {
+      {
+        const hsl = convertRgbToHsl(color);
+        const isDefault = defaultStyleMap.get(type) === color;
+        if (customOnly && isDefault)
+          return '';
+        else
+          return `
+    /* ${type}: ${color} (${isDefault ? 'default' : 'customized'}) */
+    --bulma-${type}-h: ${hsl.h};
+    --bulma-${type}-s: ${hsl.s};
+    --bulma-${type}-l: ${hsl.l};
+`;
+      }
+    }
+
     return (`@import url(https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css);
 
 /* Bulma overrides */
-:root {${Array.from(styleMap).map(([type, color]) => {
-      const hsl = convertRgbToHsl(color);
-      return `
-  /* ${type}: ${color} (${color === defaultStyleMap.get(type)! ? 'default' : 'customized'}) */
-  --bulma-${type}-h: ${hsl.h};
-  --bulma-${type}-s: ${hsl.s};
-  --bulma-${type}-l: ${hsl.l};
-`;
-    }).join('').trimEnd()}
+:root {${Array.from(styleMap).map(([type, color]) => exportColor(type, color)).join('').trimEnd()}
 }`);
   }
 
@@ -116,10 +124,15 @@ export default function App() {
       </div>
     </div>
     <div className="section">
-      <div className="container">
+      <div className="container content">
         <h2 className="title is-4">Generated CSS</h2>
         <p className="subtitle is-6">Copy the CSS below to your project's style sheet</p>
-        <textarea className="textarea is-family-monospaced" readOnly rows={10} value={createStyleSheet()}></textarea>
+        <textarea className="block textarea is-family-monospaced" readOnly rows={10} value={createStyleSheet()} name="css"></textarea>
+        <p>
+          <label className="checkbox">
+            <input type="checkbox" onClick={e => setCustomOnly(e.currentTarget.checked)} checked={customOnly} /> Export customized colors only
+          </label>
+        </p>
       </div>
     </div>
     <Sample style={style} />
