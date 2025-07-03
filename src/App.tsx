@@ -1,6 +1,7 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useState } from 'react'
 
-type BulmaType = "primary" | "link" | "info" | "success" | "warning" | "danger";
+type BulmaType = 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+// const bulmaTypes: string[] = ['primary', 'link', 'info', 'success', 'warning', 'danger'];
 
 function convertRgbToHsl(r: number, g: number, b: number): { h: number, s: number, l: number } {
   var rgb = [r / 255, g / 255, b / 255];
@@ -53,33 +54,45 @@ function addStyle(style: any, type: BulmaType, color: string): any {
   style[`--bulma-${type}-l`] = hsl.l.toString() + '%';
 }
 
+function createInitialStyleMap(): Map<BulmaType, string> {
+  return new Map<BulmaType, string>([
+    ['primary', '#00d1b2'],
+    ['link', '#3273dc'],
+    ['info', '#209cee'],
+    ['success', '#23d160'],
+    ['warning', '#ffdd57'],
+    ['danger', '#ff3860']
+  ]);
+}
 export default function App() {
-  const [primaryColor, setPrimaryColor] = useState('#00d1b2');
-  const [linkColor, setLinkColor] = useState('#3273dc');
-  const [infoColor, setInfoColor] = useState('#209cee');
-  const [successColor, setSuccessColor] = useState('#23d160');
-  const [warningColor, setWarningColor] = useState('#ffdd57');
-  const [dangerColor, setDangerColor] = useState('#ff3860');
+  const [mainTheme, setMainTheme] = useState<'light' | 'dark'>('dark');
+  const [styleMap, setStyleMap] = useState<Map<BulmaType, string>>(createInitialStyleMap());
 
-  let style: React.CSSProperties = {};
-  addStyle(style, 'primary', primaryColor);
-  addStyle(style, 'link', linkColor);
+  function updateColor(type: BulmaType, color: string) {
+    let newMap = new Map(styleMap);
+    newMap.set(type, color);
+    setStyleMap(newMap);
+  }
+
+  useEffect(() => document.documentElement.setAttribute('data-theme', mainTheme), [mainTheme]);
 
   return <>
-    <div className="section is-smnall is-info">
+    <div className="section is-smnall is-info" data-theme={mainTheme}>
       <div className="block container">
-        <h1 className="title">Hello there</h1>
+        <h1 className="title">
+          Hello there
+          <button className="button is-pulled-right" onClick={() => setMainTheme('dark')}>Dark</button>
+          <button className="button is-pulled-right" onClick={() => setMainTheme('light')}>Light</button>
+        </h1>
         <p className="subtitle">This is a simple Bulma theme color picker.</p>
       </div>
       <div className="block container">
-        <ColorPicker type="primary" color={primaryColor} onchange={setPrimaryColor} />
-        <ColorPicker type="link" color={linkColor} onchange={setLinkColor} />
-        <ColorPicker type="info" color={infoColor} onchange={setInfoColor} />
-        <ColorPicker type="success" color={successColor} onchange={setSuccessColor} />
-        <ColorPicker type="warning" color={warningColor} onchange={setWarningColor} />
-        <ColorPicker type="danger" color={dangerColor} onchange={setDangerColor} />
+        {Array.from(styleMap).map(([type, color]) =>
+          <ColorPicker key={type} type={type} color={color} onchange={newColor => updateColor(type, newColor)} />
+        )}
       </div>
-      <Sample style={style} />
+      <Sample styles={styleMap} />
+      {/* <Sample styles={styleMap} theme="dark" /> */}
     </div>
   </>;
 }
@@ -105,15 +118,30 @@ function ColorPicker(props: { type: BulmaType, color: string, onchange: (color: 
   );
 }
 
-function Sample(props: { style: React.CSSProperties }) {
+function Sample(props: { styles: Map<BulmaType, string> /*, theme: 'light' | 'dark' */ }) {
+  let style: React.CSSProperties = {};
+  for (const [type, color] of props.styles) {
+    addStyle(style, type, color);
+  }
+
+  // theme-${props.theme}`} data-theme={props.theme}
+
   return (
-    <div className="block container" style={props.style}>
-      <div className="notification is-primary">Primary</div>
-      <div className="notification is-link">Link</div>
-      <div className="notification is-info">Info</div>
-      <div className="notification is-success">Success</div>
-      <div className="notification is-warning">Warning</div>
-      <div className="notification is-danger">Danger</div>
+    <div className={`content`}>
+      <div className="block container" style={style}>
+        {Array.from(props.styles).map(([type, color]) => <div>
+          <button key={type} className={`button is-${type}`} title={`${type}: ${color}`}>{type}</button>
+          <button key={`${type}-inverted`} className={`button is-${type} is-inverted`} title={`${type}: ${color}`}>{type} inverted</button>
+          <button key={`${type}-outlined`} className={`button is-${type} is-outlined`} title={`${type}: ${color}`}>{type} outlined</button>
+        </div>)}
+        <div>
+          <button className="button">Normal</button>
+          <button className="button is-light">Light</button>
+          <button className="button is-dark">Dark</button>
+          <button className="button is-black">Black</button>
+          <button className="button is-white">White</button>
+        </div>
+      </div>
     </div>
   );
 }
