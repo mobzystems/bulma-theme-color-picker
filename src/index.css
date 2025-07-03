@@ -7,7 +7,7 @@
   justify-items: center;
 }
 
-.sample {
+.buttongrid {
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: subgrid;
