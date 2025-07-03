@@ -1,5 +1,8 @@
 import { useEffect, useState, type CSSProperties } from 'react'
-type BulmaType = 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'light' | 'dark' | 'black' | 'white'; //  | 'text' | 'ghost';
+
+type BulmaType = 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'light' | 'dark' | 'black' | 'white';
+
+const LINK = "https://www.mobzystems.com/online/simple-bulma-theme-color-picker";
 
 function convertRgbToHsl(color: string): { h: string, s: string, l: string } {
   var rgb = [parseInt(color.slice(1, 3), 16) / 255, parseInt(color.slice(3, 5), 16) / 255, parseInt(color.slice(5, 7), 16) / 255];
@@ -48,20 +51,58 @@ const defaultStyleMap = new Map<BulmaType, string>([
   ['light', '#f5f5f5'],
   ['dark', '#363636'],
   ['black', '#000000'],
-  ['white', '#ffffff'],
-  // ['text', '#4a4a4a'],
-  // ['ghost', '#f5f5f5']
+  ['white', '#ffffff']
 ]);
 
 export default function App() {
   const [mainTheme, setMainTheme] = useState<'light' | 'dark'>('dark');
   const [styleMap, setStyleMap] = useState<Map<BulmaType, string>>(defaultStyleMap);
   const [customOnly, setCustomOnly] = useState(true);
+  const [importing, setImporting] = useState(false);
+  const [themeToImport, setThemeToImport] = useState('');
+  const [importError, setImportError] = useState('');
 
   function updateColor(type: BulmaType, color: string) {
     let newMap = new Map(styleMap);
     newMap.set(type, color);
     setStyleMap(newMap);
+  }
+
+  function importTheme(): boolean {
+    try {
+      const newTheme = JSON.parse(themeToImport);
+
+      if (typeof newTheme !== 'object' || newTheme === null) {
+        setImportError('Invalid theme format');
+        return false;
+      }
+
+      const newMap = new Map<BulmaType, string>(defaultStyleMap);
+      for (const type of Object.keys(newTheme) as BulmaType[]) {
+        if (!defaultStyleMap.has(type)) {
+          setImportError(`Unknown Bulma type: '${type}'`);
+          return false;
+        }
+        if (typeof newTheme[type] !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(newTheme[type])) {
+          setImportError(`Invalid color for type '${type}': ${newTheme[type]}`);
+          return false;
+        }
+        // No errors: add color to theme map
+        newMap.set(type, newTheme[type]);
+      }
+
+      setStyleMap(newMap);
+
+      setImportError('');
+
+      return true;
+
+    } catch (e) {
+
+      setImportError(`${e}`);
+      return false;
+
+    }
   }
 
   useEffect(() => document.documentElement.setAttribute('data-theme', mainTheme), [mainTheme]);
@@ -85,6 +126,15 @@ export default function App() {
 
     return (`@import url(https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css);
 
+/*
+ Created with Simple Bulma Theme Color Picker (${LINK}).
+ To change: use the JSON below to import your theme there
+
+{ "primary": "${styleMap.get('primary')}", "link": "${styleMap.get('link')}", "info": "${styleMap.get('info')}", "success": "${styleMap.get('success')}", "warning": "${styleMap.get('warning')}", "danger": "${styleMap.get('danger')}",
+"light": "${styleMap.get('light')}", "dark": "${styleMap.get('dark')}", "black": "${styleMap.get('black')}","white": "${styleMap.get('white')}" }
+
+*/
+
 /* Bulma overrides */
 :root {${Array.from(styleMap).map(([type, color]) => exportColor(type, color)).join('').trimEnd()}
 }`);
@@ -106,7 +156,7 @@ export default function App() {
           <button className="button is-pulled-right is-dark" onClick={() => setMainTheme('dark')}>Dark</button>
           <button className="button is-pulled-right is-light" onClick={() => setMainTheme('light')}>Light</button>
         </h1>
-        <p className="subtitle">A simple Bulma theme color picker by <a href="https://www.mobzystems.com" target="_blank">MOBZystems</a></p>
+        <p className="subtitle">A simple Bulma theme color picker by <a href={LINK} target="_blank">MOBZystems</a></p>
       </div>
     </div>
     <div className="section">
@@ -126,14 +176,29 @@ export default function App() {
     <div className="section">
       <div className="container content">
         <h2 className="title is-4">Generated CSS</h2>
-        <p className="subtitle is-6">Copy the CSS below to your project's style sheet</p>
-        <textarea className="block textarea is-family-monospaced" readOnly rows={10} value={createStyleSheet()} name="css"></textarea>
+        <p className="subtitle is-6">Copy the CSS below to your project's style sheet. <a href={LINK} target="_blank">More information</a></p>
+        <textarea className="block textarea is-family-monospace" readOnly rows={10} value={createStyleSheet()} name="css"></textarea>
         <p>
           <label className="checkbox">
             <input type="checkbox" onClick={e => setCustomOnly(e.currentTarget.checked)} checked={customOnly} /> Export customized colors only
           </label>
         </p>
+
+        {importing ? 
+          <>
+            {/* Importing */}
+            {importError !== '' && <p className="has-text-danger">{importError}</p>}
+            <textarea className="block textarea is-family-monospace" rows={2} placeholder="Paste your JSON theme here" onChange={e => setThemeToImport(e.target.value)}></textarea>
+            <button className="button is-primary" disabled={themeToImport === ''} onClick={() => { if (importTheme()) setImporting(false); }}>Import</button>
+            <button className="button is-ghost" onClick={() => { setImporting(false); setImportError(''); }}>Cancel</button>
+          </> : 
+          <>
+            {/* Not importing */}
+            <button className="button is-primary" onClick={() => setImporting(true)}>Import...</button>
+          </>
+        }
       </div>
+
     </div>
     <Sample style={style} />
   </>;
