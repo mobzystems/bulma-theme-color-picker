@@ -194,7 +194,7 @@ export default function App() {
           </> : 
           <>
             {/* Not importing */}
-            <button className="button is-primary" onClick={() => setImporting(true)}>Import...</button>
+            <button className="button is-primary" onClick={() => { setImporting(true); setThemeToImport(''); }}>Import...</button>
           </>
         }
       </div>
