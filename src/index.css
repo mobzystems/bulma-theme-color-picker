@@ -1,2 +1,16 @@
 @import url('https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css');
 
+.typegrid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 1rem;
+  justify-items: center;
+}
+
+.sample {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  gap: inherit;
+  justify-items: inherit;
+}
