@@ -3,3 +3,5 @@
 A simple Bulma color picker for the basic types primary, info, link, success, etc. Shows the changes you make immediately. Preview in dark and light themes.
 
 More information: [MOBZystems, Home of Tools](https://www.mobzystems.com/online/a-simple-bulma-theme-color-picker/)
+
+[Try it out now](https://www.mobzystems.com/online/bulma-theme-color-picker/)
