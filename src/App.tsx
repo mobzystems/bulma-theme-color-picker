@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 type BulmaType = 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'light' | 'dark' | 'black' | 'white';
 
-const LINK = "https://www.mobzystems.com/online/simple-bulma-theme-color-picker";
+const LINK = "https://www.mobzystems.com/online/a-simple-bulma-theme-color-picker/";
 
 /**
  * (Large) helper function (copied from w3schools.com, cleaned up) to convert a hex color to HSL.
