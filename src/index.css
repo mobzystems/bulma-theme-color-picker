@@ -1,5 +1,9 @@
 @import url('https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css');
 
+.section {
+  --bulma-section-padding-desktop: 1.5rem 1.5rem;
+}
+
 .typegrid {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
@@ -13,4 +17,10 @@
   grid-template-columns: subgrid;
   gap: inherit;
   justify-items: inherit;
+}
+
+.grid4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
 }
